@@ -3,16 +3,19 @@ const dateFormat = require('../utils/dateFormat');
 
 const ReplySchema = new Schema(
     {
-      // set custom id to avoid confusion with parent comment's _id field
+      // set custom id to avoid confusion with parent comment _id
       replyId: {
         type: Schema.Types.ObjectId,
         default: () => new Types.ObjectId()
       },
       replyBody: {
-        type: String
+        type: String,
+        trim: true,
+        required: true
       },
       writtenBy: {
-        type: String
+        type: String,
+        required: true,
       },
       createdAt: {
         type: Date,
@@ -27,34 +30,36 @@ const ReplySchema = new Schema(
     }
   );
 
-  const CommentSchema = new Schema(
-    {
-      writtenBy: {
-        type: String
-      },
-      commentBody: {
-        type: String
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now,
-        get: createdAtVal => dateFormat(createdAtVal)
-      },
-      // use ReplySchema to validate data for a reply
-      replies: [ReplySchema]
+const CommentSchema = new Schema(
+  {
+    writtenBy: {
+      type: String,
+      required: true
     },
-    {
-      toJSON: {
-        virtuals: true,
-        getters: true
-      },
-      id: false
-    }
-  );
+    commentBody: {
+      type: String,
+      required: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+      get: createdAtVal => dateFormat(createdAtVal)
+    },
+    // use ReplySchema to validate data for a reply
+    replies: [ReplySchema]
+  },
+  {
+    toJSON: {
+      virtuals: true,
+      getters: true
+    },
+    id: false
+  }
+);
 
-  CommentSchema.virtual('replyCount').get(function() {
-    return this.replies.length;
-  });
+CommentSchema.virtual('replyCount').get(function() {
+  return this.replies.length;
+});
 
 const Comment = model('Comment', CommentSchema);
 
